@@ -2,7 +2,7 @@ import os
 from config import Config
 
 class  Script(object):
-  START_TXT = """<b>👋 Ahoy, <blockquote>{}</blockquote> ⚓</b>
+  START_TXT = """<b>👋 Ahoy, <blockquote>{} 🏴‍☠️</blockquote></b>
 
 <b>🤖 I’m your Smart Forward Bot!</b>
 <i>🚀 I can forward all posts from any <b>Private</b> or <b>Public</b> channel to your own channel — fast and easy.</i>
