@@ -2,9 +2,11 @@
 
 from pyrogram import Client, filters
 from pyrogram.types import Message
-from config import LOG_CHANNEL_ID, ADMINS
 from database import db
 from datetime import datetime, timedelta
+from config import Config
+LOG_CHANNEL_ID = Config.LOG_CHANNEL_ID
+ADMINS = Config.ADMINS
 
 
 @Client.on_message(filters.command("buy") & filters.private)
