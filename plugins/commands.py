@@ -13,6 +13,7 @@ from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, InputMedi
 import psutil
 import time as time
 from os import environ, execle, system
+from utils.premium_check import is_premium
 
 START_TIME = time.time()
 
@@ -41,13 +42,25 @@ main_buttons = [[
 @Client.on_message(filters.private & filters.command(['start']))
 async def start(client, message):
     user = message.from_user
+
+    # Add user to DB if not exist
     if not await db.is_user_exist(user.id):
         await db.add_user(user.id, user.first_name)
+
+    # 🔐 Check Premium Status
+    if not await is_premium(user.id):
+        return await message.reply_text(
+            "🚫 This bot is for premium users only.\n\n💎 Use /buy to purchase access and enjoy the features.",
+            quote=True
+        )
+
+    # ✅ If Premium, show main start buttons
     reply_markup = InlineKeyboardMarkup(main_buttons)
     await client.send_message(
         chat_id=message.chat.id,
         reply_markup=reply_markup,
-        text=Script.START_TXT.format(message.from_user.first_name))
+        text=Script.START_TXT.format(message.from_user.first_name)
+    )
 
 # Don't Remove Credit Tg - @VJ_Botz
 # Subscribe YouTube Channel For Amazing Bot https://youtube.com/@Tech_VJ
