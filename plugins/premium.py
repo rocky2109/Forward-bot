@@ -3,30 +3,42 @@ from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, 
 from database import db
 from datetime import datetime, timedelta
 from config import Config
+from plugins.start import Script, main_buttons  # ✅ Import from your start file
 
 LOG_CHANNEL_ID = Config.LOG_CHANNEL_ID
 ADMINS = Config.ADMINS
 
 
-@Client.on_message(filters.command("buy") & filters.private)
-async def buy_plan(client, message: Message):
+# 🔹 Send plan options (used in /buy & "change plan")
+async def send_plan_options(client, message):
     buttons = [
-        [InlineKeyboardButton("💎 Weekly ₹50", callback_data="plan_week")],
-        [InlineKeyboardButton("👑 Monthly ₹100", callback_data="plan_month")]
+        [
+            InlineKeyboardButton("🕐 1 Day ₹15", callback_data="plan_day"),
+            InlineKeyboardButton("💎 Weekly ₹50", callback_data="plan_week")
+        ],
+        [
+            InlineKeyboardButton("👑 Monthly ₹100", callback_data="plan_month")
+        ],
+        [
+            InlineKeyboardButton("🏠 Home", callback_data="go_home")
+        ]
     ]
     await message.reply_text(
-        "🎁 <b>Choose your premium plan:</b>\n\n"
-        "💎 <b>Weekly</b>: ₹50 (7 days)\n"
-        "👑 <b>Monthly</b>: ₹100 (30 days)\n\n"
-        "📸 After payment, send a screenshot and use /paydone\n"
-        "💳 UPI: <code>yourupi@paytm</code>\n\n"
-        "Scan this QR for faster payment 👇",
+        "💰 <b>Select a Premium Plan:</b>",
         reply_markup=InlineKeyboardMarkup(buttons),
         
     )
 
-    # Replace this with local file or File ID for QR code
-    await client.send_photo(message.chat.id, photo="your_local_qr.png")
+
+@Client.on_message(filters.command("buy") & filters.private)
+async def buy_plan(client, message: Message):
+    await send_plan_options(client, message)
+
+
+@Client.on_callback_query(filters.regex("buy_again"))
+async def change_plan(client, callback_query: CallbackQuery):
+    await send_plan_options(client, callback_query.message)
+    await callback_query.message.delete()
 
 
 @Client.on_callback_query(filters.regex("plan_"))
@@ -34,45 +46,56 @@ async def select_plan(client, callback_query: CallbackQuery):
     user_id = callback_query.from_user.id
     plan_type = callback_query.data
 
+    # ✅ Plan Configs
     if "day" in plan_type:
         days = 1
-        plan_name = "🕐 1 Day ₹10"
-        qr_image_url = "https://freeimage.host/i/38yDbuS"  # Replace with your own QR image URL
+        plan_name = "🕐 1 Day ₹15"
+        qr_image_url = "https://freeimage.host/i/qr-day.JyYWo3x"
     elif "week" in plan_type:
         days = 7
         plan_name = "💎 Weekly ₹50"
-        qr_image_url = "https://freeimage.host/i/3S95C2s"
+        qr_image_url = "https://freeimage.host/i/qr-weekly.JyYpjWN"
     else:
         days = 30
         plan_name = "👑 Monthly ₹100"
-        qr_image_url = "https://freeimage.host/i/38yDVTP"
+        qr_image_url = "https://freeimage.host/i/qr-monthly.JyYp50g"
 
+    # Save plan
     await db.col.update_one(
         {"id": user_id},
         {"$set": {"selected_plan": {"name": plan_name, "days": days}}},
         upsert=True
     )
 
+    # Buttons
     buttons = [
         [InlineKeyboardButton("✅ I Paid - /paydone", callback_data="none")],
         [InlineKeyboardButton("🔁 Change Plan", callback_data="buy_again")],
         [InlineKeyboardButton("🏠 Home", callback_data="go_home")]
     ]
-    reply_markup = InlineKeyboardMarkup(buttons)
 
     await callback_query.message.reply_photo(
         photo=qr_image_url,
         caption=(
             f"✅ <b>You selected:</b> <code>{plan_name}</code>\n\n"
             f"💳 <b>Pay to UPI:</b> <code>yourupi@paytm</code>\n"
-            f"📸 Send screenshot and use <code>/paydone</code>"
+            f"📸 After payment, send screenshot and use <code>/paydone</code>"
         ),
-        reply_markup=reply_markup,
-        
+        reply_markup=InlineKeyboardMarkup(buttons),
+        parse_mode="HTML"
     )
 
     await callback_query.message.delete()
 
+
+@Client.on_callback_query(filters.regex("go_home"))
+async def go_home(client, callback_query: CallbackQuery):
+    user = callback_query.from_user
+    await callback_query.message.edit_text(
+        text=Script.START_TXT.format(user.mention),
+        reply_markup=InlineKeyboardMarkup(main_buttons),
+        parse_mode="HTML"
+    )
 
 
 @Client.on_message(filters.command("paydone") & filters.private)
@@ -87,7 +110,7 @@ async def pay_done(client, message: Message):
     plan_name = selected_plan.get("name", "Not Selected")
     plan_days = selected_plan.get("days", "N/A")
 
-    # Get file from message, document, or reply
+    # Get file from msg or reply
     file = None
     if message.photo:
         file = message.photo.file_id
@@ -118,7 +141,7 @@ async def pay_done(client, message: Message):
             f"🛠️ Approve with:\n"
             f"<code>/approve {user_id} {plan_days}</code>"
         ),
-        
+        parse_mode="HTML"
     )
 
 
@@ -137,12 +160,15 @@ async def approve_plan(client, message: Message):
                     "is_active": True,
                     "expires_on": expires.isoformat()
                 },
-                "selected_plan": None  # clear selected plan
+                "selected_plan": None
             }},
             upsert=True
         )
 
-        await message.reply(f"✅ Approved <code>{uid}</code> for {days} days. Expires: <b>{expires.date()}</b>")
+        await message.reply(
+            f"✅ Approved <code>{uid}</code> for {days} days.\n📅 Expires on: <b>{expires.date()}</b>",
+            parse_mode="HTML"
+        )
 
         try:
             await client.send_message(
@@ -150,7 +176,7 @@ async def approve_plan(client, message: Message):
                 f"🎉 <b>Your premium is now active!</b>\n"
                 f"✅ Valid for <b>{days}</b> days.\n"
                 f"📅 Expires on: <code>{expires.date()}</code>",
-                
+                parse_mode="HTML"
             )
         except:
             pass
@@ -165,6 +191,12 @@ async def my_plan(client, message: Message):
     if user and user.get("premium", {}).get("is_active", False):
         expires = datetime.fromisoformat(user["premium"]["expires_on"])
         days_left = (expires - datetime.utcnow()).days
-        await message.reply_text(f"💎 Premium Status: ✅ Active\n📅 Expires in: {days_left} days")
+        await message.reply_text(
+            f"💎 Premium Status: ✅ Active\n📅 Expires in: {days_left} days",
+            parse_mode="HTML"
+        )
     else:
-        await message.reply_text("🔓 Premium Status: ❌ Not Active\nUse /buy to upgrade.")
+        await message.reply_text(
+            "🔓 Premium Status: ❌ Not Active\nUse /buy to upgrade.",
+            parse_mode="HTML"
+        )
