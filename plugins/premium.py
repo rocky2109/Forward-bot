@@ -3,7 +3,6 @@ from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, 
 from database import db
 from datetime import datetime, timedelta
 from config import Config
-from plugins.start import Script, main_buttons  # ✅ Import from your start file
 
 LOG_CHANNEL_ID = Config.LOG_CHANNEL_ID
 ADMINS = Config.ADMINS
