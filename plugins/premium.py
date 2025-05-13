@@ -19,7 +19,7 @@ async def send_plan_options(client, message):
             InlineKeyboardButton("👑 Monthly ₹100", callback_data="plan_month")
         ],
         [
-            InlineKeyboardButton("🏠 Home", callback_data="go_home")
+            InlineKeyboardButton("🏠 Home", callback_data="start")
         ]
     ]
     await message.reply_text(
