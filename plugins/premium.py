@@ -23,23 +23,38 @@ async def buy_plan(client, message: Message):
 
 
 @Client.on_message(filters.command("paydone") & filters.private)
-async def pay_done(client, message: Message):
-    if not message.photo:
-        return await message.reply("📸 Please send a screenshot/photo of your payment!")
+async def pay_done(client, message):
+    file = None
 
-    await message.reply("✅ Payment proof submitted! We'll verify and approve you soon.")
+    # 🔍 Try to fetch photo or document from message or reply
+    if message.photo:
+        file = message.photo.file_id
+    elif message.document and message.document.mime_type.startswith("image/"):
+        file = message.document.file_id
+    elif message.reply_to_message:
+        if message.reply_to_message.photo:
+            file = message.reply_to_message.photo.file_id
+        elif message.reply_to_message.document and message.reply_to_message.document.mime_type.startswith("image/"):
+            file = message.reply_to_message.document.file_id
 
+    if not file:
+        return await message.reply("📸 Please send a screenshot image (photo or document), or reply to one.")
+
+    await message.reply("✅ Your payment proof has been submitted. We'll verify and approve you soon.")
+
+    # ✅ Notify admin in log channel
     await client.send_photo(
-        chat_id=LOG_CHANNEL_ID,
-        photo=message.photo.file_id,
+        chat_id=Config.LOG_CHANNEL_ID,
+        photo=file,
         caption=(
-            f"💳 *New Payment Received!*\n\n"
+            f"💳 *New Payment Submitted!*\n\n"
             f"👤 User: [{message.from_user.first_name}](tg://user?id={message.from_user.id})\n"
             f"🆔 User ID: `{message.from_user.id}`\n\n"
-            f"Reply to approve:\n`/approve {message.from_user.id} 7` or `/approve {message.from_user.id} 30`"
+            f"Reply with:\n`/approve {message.from_user.id} 7` or `/approve {message.from_user.id} 30`"
         ),
         parse_mode="Markdown"
     )
+
 
 
 @Client.on_message(filters.command("approve") & filters.user(ADMINS))
