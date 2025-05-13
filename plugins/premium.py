@@ -21,7 +21,7 @@ async def send_plan_options(client, message):
     await message.reply_text(
         "💰 <b>Select a Premium Plan:</b>",
         reply_markup=InlineKeyboardMarkup(buttons),
-        parse_mode="HTML"
+        
     )
 
 
@@ -77,7 +77,7 @@ async def select_plan(client, callback_query: CallbackQuery):
             f"📸 After payment, send screenshot below 👇"
         ),
         reply_markup=InlineKeyboardMarkup(buttons),
-        parse_mode="HTML"
+        
     )
     await callback_query.message.delete()
 
