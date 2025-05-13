@@ -37,11 +37,11 @@ async def select_plan(client, callback_query: CallbackQuery):
     if "week" in plan_type:
         days = 7
         plan_name = "💎 Weekly ₹50"
-        qr_image_url = "https://freeimage.host/i/qr-weekly.JyYpjWN"  # hosted image URL for weekly
+        qr_image_url = "https://imagekit.io/tools/asset-public-link?detail=%7B%22name%22%3A%224d020ebafabcd5ad55f73f1ddb6e116f.jpg%22%2C%22type%22%3A%22image%2Fjpeg%22%2C%22signedurl_expire%22%3A%222028-05-12T06%3A21%3A08.486Z%22%2C%22signedUrl%22%3A%22https%3A%2F%2Fmedia-hosting.imagekit.io%2F54d7ea74057944f5%2F4d020ebafabcd5ad55f73f1ddb6e116f.jpg%3FExpires%3D1841725268%26Key-Pair-Id%3DK2ZIVPTIP2VGHC%26Signature%3DkAxD7K5IUGuqC~~a8t~sEffZCzAPsCFiEspNuOov~2AxIT4~dmmblKI-6Cm7XKXbV3nb5fUVArpM4~9dusXQY1~mhjgayWmxJtCwptXem-vg1t-c80hkiNNoDkuQIY9HvmcQQBZdDDwyeXYBA1YhP-FjxjyWRUaNez4NFQT6olV60dL9rvAV0bqqJYf-qiHdycPLczEiuaoOOcpu57D5ONYcIK2RggonwYhBj2TpM7Nid4vpYJzYFbu6YVyoQKt3F7XQmOxUBzNBQrGhkzttKKsu8mW71Uz0x73xP3JBK4Rzk8bF0efOub0gtt-Q7e152S6wl9Mv4iPucCzStedrMQ__%22%7D"  # hosted image URL for weekly
     else:
         days = 30
         plan_name = "👑 Monthly ₹100"
-        qr_image_url = "https://freeimage.host/i/qr-monthly.JyYp50g"  # hosted image URL for monthly
+        qr_image_url = "https://imagekit.io/tools/asset-public-link?detail=%7B%22name%22%3A%224d020ebafabcd5ad55f73f1ddb6e116f.jpg%22%2C%22type%22%3A%22image%2Fjpeg%22%2C%22signedurl_expire%22%3A%222028-05-12T06%3A21%3A08.486Z%22%2C%22signedUrl%22%3A%22https%3A%2F%2Fmedia-hosting.imagekit.io%2F54d7ea74057944f5%2F4d020ebafabcd5ad55f73f1ddb6e116f.jpg%3FExpires%3D1841725268%26Key-Pair-Id%3DK2ZIVPTIP2VGHC%26Signature%3DkAxD7K5IUGuqC~~a8t~sEffZCzAPsCFiEspNuOov~2AxIT4~dmmblKI-6Cm7XKXbV3nb5fUVArpM4~9dusXQY1~mhjgayWmxJtCwptXem-vg1t-c80hkiNNoDkuQIY9HvmcQQBZdDDwyeXYBA1YhP-FjxjyWRUaNez4NFQT6olV60dL9rvAV0bqqJYf-qiHdycPLczEiuaoOOcpu57D5ONYcIK2RggonwYhBj2TpM7Nid4vpYJzYFbu6YVyoQKt3F7XQmOxUBzNBQrGhkzttKKsu8mW71Uz0x73xP3JBK4Rzk8bF0efOub0gtt-Q7e152S6wl9Mv4iPucCzStedrMQ__%22%7D"  # hosted image URL for monthly
 
     # Save selected plan to DB
     await db.col.update_one(
