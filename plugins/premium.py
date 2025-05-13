@@ -64,7 +64,7 @@ async def select_plan(client, callback_query: CallbackQuery):
     )
 
     buttons = [
-        [InlineKeyboardButton("✅ I Paid", callback_data="i_paid")],
+        [InlineKeyboardButton("✅ I Paid", callback_data="paydone")],
         [InlineKeyboardButton("🔁 Change Plan", callback_data="buy_again")],
         [InlineKeyboardButton("🏠 Home", callback_data="start")]
     ]
@@ -82,49 +82,43 @@ async def select_plan(client, callback_query: CallbackQuery):
     await callback_query.message.delete()
 
 
-@Client.on_callback_query(filters.regex("i_paid"))
-async def i_paid_clicked(client, callback_query: CallbackQuery):
-    user_id = callback_query.from_user.id
+@Client.on_message(filters.command("paydone") & filters.private)
+async def pay_done(client, message: Message):
+    user = message.from_user
+    user_id = user.id
+    username = f"@{user.username}" if user.username else "N/A"
 
-    await callback_query.message.edit_text(
-        "📸 Now send your payment screenshot (photo or image doc).\n"
-        "We will verify and approve your plan manually.",
-        parse_mode="HTML"
-    )
-
-    await db.col.update_one(
-        {"id": user_id},
-        {"$set": {"awaiting_screenshot": True}}
-    )
-
-
-@Client.on_message(filters.private & (filters.photo | filters.document))
-async def handle_payment_screenshot(client, message: Message):
-    user_id = message.from_user.id
+    # Get selected plan
     user_data = await db.col.find_one({"id": user_id})
+    selected_plan = user_data.get("selected_plan", {})
+    plan_name = selected_plan.get("name", "Not Selected")
+    plan_days = selected_plan.get("days", "N/A")
 
-    if not user_data or not user_data.get("awaiting_screenshot"):
-        return
-
+    # Get file from msg or reply
     file = None
     if message.photo:
         file = message.photo.file_id
     elif message.document and message.document.mime_type.startswith("image/"):
         file = message.document.file_id
+    elif message.reply_to_message:
+        reply = message.reply_to_message
+        if reply.photo:
+            file = reply.photo.file_id
+        elif reply.document and reply.document.mime_type.startswith("image/"):
+            file = reply.document.file_id
 
     if not file:
-        return await message.reply("❌ Please send a valid image (photo or document).")
+        return await message.reply("📸 Please send or reply to a screenshot and use /paydone again.")
 
-    plan_name = user_data.get("selected_plan", {}).get("name", "Not Selected")
-    plan_days = user_data.get("selected_plan", {}).get("days", "N/A")
-    username = f"@{message.from_user.username}" if message.from_user.username else "N/A"
+    await message.reply("✅ Payment proof submitted!\nWe'll verify and activate your premium shortly.")
 
+    # Send to log channel
     await client.send_photo(
         chat_id=LOG_CHANNEL_ID,
         photo=file,
         caption=(
             f"<b>💳 New Payment Proof Submitted!</b>\n\n"
-            f"<b>👤 User:</b> <a href='tg://user?id={user_id}'>{message.from_user.first_name}</a>\n"
+            f"<b>👤 User:</b> <a href='tg://user?id={user_id}'>{user.first_name}</a>\n"
             f"<b>🆔 ID:</b> <code>{user_id}</code>\n"
             f"<b>🔗 Username:</b> {username}\n"
             f"<b>💰 Plan:</b> {plan_name} ({plan_days} days)\n\n"
@@ -133,13 +127,6 @@ async def handle_payment_screenshot(client, message: Message):
         ),
         parse_mode="HTML"
     )
-
-    await db.col.update_one(
-        {"id": user_id},
-        {"$unset": {"awaiting_screenshot": ""}}
-    )
-    await message.reply("✅ Payment proof received!\nWe'll verify and activate your premium shortly.")
-
 
 @Client.on_message(filters.command("approve") & filters.user(ADMINS))
 async def approve_plan(client, message: Message):
