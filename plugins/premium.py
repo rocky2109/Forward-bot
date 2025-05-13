@@ -24,9 +24,13 @@ async def buy_plan(client, message: Message):
 
 @Client.on_message(filters.command("paydone") & filters.private)
 async def pay_done(client, message):
+    user = message.from_user
+    user_id = user.id
+    username = f"@{user.username}" if user.username else "N/A"
+
     file = None
 
-    # 🔍 Try to fetch photo or document from message or reply
+    # 🧠 Get image from message, document, or reply
     if message.photo:
         file = message.photo.file_id
     elif message.document and message.document.mime_type.startswith("image/"):
@@ -37,23 +41,39 @@ async def pay_done(client, message):
         elif message.reply_to_message.document and message.reply_to_message.document.mime_type.startswith("image/"):
             file = message.reply_to_message.document.file_id
 
+    # ❌ If no image found
     if not file:
-        return await message.reply("📸 Please send a screenshot image (photo or document), or reply to one.")
+        return await message.reply(
+            "📸 Please send your payment screenshot image (as photo or document), or reply to an image and use /paydone.",
+            quote=True
+        )
 
-    await message.reply("✅ Your payment proof has been submitted. We'll verify and approve you soon.")
+    await message.reply("✅ Your payment proof has been submitted!\nWe'll verify and activate your premium shortly.")
 
-    # ✅ Notify admin in log channel
+    # 🧾 Optional plan detection (if mentioned in caption)
+    plan = "Unknown"
+    if message.caption:
+        if "week" in message.caption.lower():
+            plan = "Weekly ₹50"
+        elif "month" in message.caption.lower():
+            plan = "Monthly ₹100"
+
+    # 🔥 Send to LOG_CHANNEL
     await client.send_photo(
         chat_id=Config.LOG_CHANNEL_ID,
         photo=file,
         caption=(
-            f"💳 *New Payment Submitted!*\n\n"
-            f"👤 User: [{message.from_user.first_name}](tg://user?id={message.from_user.id})\n"
-            f"🆔 User ID: `{message.from_user.id}`\n\n"
-            f"Reply with:\n`/approve {message.from_user.id} 7` or `/approve {message.from_user.id} 30`"
+            f"<b>💳 New Payment Proof Submitted!</b>\n\n"
+            f"<b>👤 User:</b> <a href='tg://user?id={user_id}'>{user.first_name}</a>\n"
+            f"<b>🆔 ID:</b> <code>{user_id}</code>\n"
+            f"<b>🔗 Username:</b> {username}\n"
+            f"<b>💰 Plan:</b> {plan}\n\n"
+            f"🛠️ Reply with:\n"
+            f"<code>/approve {user_id} 7</code> or <code>/approve {user_id} 30</code>"
         ),
-        parse_mode="Markdown"
+        parse_mode="html"
     )
+
 
 
 
