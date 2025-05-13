@@ -45,28 +45,25 @@ async def select_plan(client, callback_query: CallbackQuery):
     user_id = callback_query.from_user.id
     plan_type = callback_query.data
 
-    # ✅ Plan Configs
     if "day" in plan_type:
         days = 1
-        plan_name = "🕐 1 Day ₹15"
-        qr_image_url = "https://freeimage.host/i/qr-day.JyYWo3x"
+        plan_name = "🕐 1 Day ₹10"
+        qr_image_path = "images/1day.jpg"
     elif "week" in plan_type:
         days = 7
         plan_name = "💎 Weekly ₹50"
-        qr_image_url = "https://freeimage.host/i/qr-weekly.JyYpjWN"
+        qr_image_path = "images/1week.jpg"
     else:
         days = 30
         plan_name = "👑 Monthly ₹100"
-        qr_image_url = "https://freeimage.host/i/qr-monthly.JyYp50g"
+        qr_image_path = "images/1month.jpg"
 
-    # Save plan
     await db.col.update_one(
         {"id": user_id},
         {"$set": {"selected_plan": {"name": plan_name, "days": days}}},
         upsert=True
     )
 
-    # Buttons
     buttons = [
         [InlineKeyboardButton("✅ I Paid - /paydone", callback_data="none")],
         [InlineKeyboardButton("🔁 Change Plan", callback_data="buy_again")],
@@ -74,17 +71,18 @@ async def select_plan(client, callback_query: CallbackQuery):
     ]
 
     await callback_query.message.reply_photo(
-        photo=qr_image_url,
+        photo=qr_image_path,
         caption=(
             f"✅ <b>You selected:</b> <code>{plan_name}</code>\n\n"
             f"💳 <b>Pay to UPI:</b> <code>yourupi@paytm</code>\n"
-            f"📸 After payment, send screenshot and use <code>/paydone</code>"
+            f"📸 Send screenshot and use <code>/paydone</code>"
         ),
         reply_markup=InlineKeyboardMarkup(buttons),
-        
+        parse_mode="HTML"
     )
 
     await callback_query.message.delete()
+
 
 
 @Client.on_callback_query(filters.regex("go_home"))
