@@ -22,7 +22,7 @@ async def buy_plan(client, message: Message):
         "💳 UPI: <code>yourupi@paytm</code>\n\n"
         "Scan this QR for faster payment 👇",
         reply_markup=InlineKeyboardMarkup(buttons),
-        parse_mode="html"
+        parse_mode="HTML"
     )
 
     # Replace this with local file or File ID for QR code
@@ -97,7 +97,7 @@ async def pay_done(client, message: Message):
             f"🛠️ Approve with:\n"
             f"<code>/approve {user_id} {plan_days}</code>"
         ),
-        parse_mode="html"
+        parse_mode="HTML"
     )
 
 
