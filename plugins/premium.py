@@ -22,7 +22,7 @@ async def buy_plan(client, message: Message):
         "💳 UPI: <code>yourupi@paytm</code>\n\n"
         "Scan this QR for faster payment 👇",
         reply_markup=InlineKeyboardMarkup(buttons),
-        parse_mode="HTML"
+        
     )
 
     # Replace this with local file or File ID for QR code
@@ -50,7 +50,7 @@ async def select_plan(client, callback_query: CallbackQuery):
     await callback_query.message.edit_text(
         f"✅ You selected: <b>{plan_name}</b>\n\n"
         "📸 Now send your payment screenshot and use /paydone.",
-        parse_mode="html"
+       
     )
 
 
@@ -97,7 +97,7 @@ async def pay_done(client, message: Message):
             f"🛠️ Approve with:\n"
             f"<code>/approve {user_id} {plan_days}</code>"
         ),
-        parse_mode="HTML"
+        
     )
 
 
@@ -121,7 +121,7 @@ async def approve_plan(client, message: Message):
             upsert=True
         )
 
-        await message.reply(f"✅ Approved <code>{uid}</code> for {days} days. Expires: <b>{expires.date()}</b>", parse_mode="html")
+        await message.reply(f"✅ Approved <code>{uid}</code> for {days} days. Expires: <b>{expires.date()}</b>")
 
         try:
             await client.send_message(
@@ -129,7 +129,7 @@ async def approve_plan(client, message: Message):
                 f"🎉 <b>Your premium is now active!</b>\n"
                 f"✅ Valid for <b>{days}</b> days.\n"
                 f"📅 Expires on: <code>{expires.date()}</code>",
-                parse_mode="html"
+                
             )
         except:
             pass
