@@ -85,8 +85,8 @@ async def select_plan(client, callback_query: CallbackQuery):
 
 
 
-@Client.on_callback_query(filters.regex("go_home"))
-async def go_home(client, callback_query: CallbackQuery):
+@Client.on_callback_query(filters.regex("start"))
+async def start(client, callback_query: CallbackQuery):
     user = callback_query.from_user
     await callback_query.message.edit_text(
         text=Script.START_TXT.format(user.mention),
