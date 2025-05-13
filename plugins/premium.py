@@ -68,7 +68,7 @@ async def select_plan(client, callback_query: CallbackQuery):
             f"📸 Send screenshot and use <code>/paydone</code>"
         ),
         reply_markup=reply_markup,
-        parse_mode="HTML"
+        
     )
 
     await callback_query.message.delete()
