@@ -125,7 +125,7 @@ async def pay_done(client, message: Message):
             f"🛠️ Approve with:\n"
             f"<code>/approve {user_id} {plan_days}</code>"
         ),
-        parse_mode="HTML"
+        
     )
 
 @Client.on_message(filters.command("approve") & filters.user(ADMINS))
