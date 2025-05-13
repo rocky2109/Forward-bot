@@ -27,7 +27,27 @@ async def send_plan_options(client, message):
         reply_markup=InlineKeyboardMarkup(buttons),
         
     )
+@Client.on_message(filters.command("revoke") & filters.user(ADMINS))
+async def revoke_plan(client, message: Message):
+    try:
+        _, uid = message.text.split()
+        uid = int(uid)
 
+        # Remove premium
+        await db.col.update_one(
+            {"id": uid},
+            {"$unset": {"premium": "", "selected_plan": ""}}
+        )
+
+        await message.reply(f"🗑️ Premium access revoked for user <code>{uid}</code>.", parse_mode="html")
+
+        try:
+            await client.send_message(uid, "⚠️ Your premium plan has been revoked by admin.")
+        except Exception:
+            pass
+
+    except:
+        await message.reply("❌ Usage: /revoke <user_id>")
 
 @Client.on_message(filters.command("buy") & filters.private)
 async def buy_plan(client, message: Message):
