@@ -148,25 +148,23 @@ async def approve_plan(client, message: Message):
             upsert=True
         )
 
-        # ✅ Notify admin
         await message.reply(
             f"✅ Approved <code>{uid}</code> for {days} days.\n📅 Expires on: <b>{expires.date()}</b>",
-            parse_mode="HTML"
+            parse_mode="html"  # FIXED here
         )
 
-        # ✅ Notify user
         try:
             await client.send_message(
                 uid,
                 f"🎉 <b>Your premium is now active!</b>\n"
                 f"✅ Valid for <b>{days}</b> days.\n"
                 f"📅 Expires on: <code>{expires.date()}</code>",
-                parse_mode="HTML"
+                parse_mode="html"  # FIXED here
             )
         except:
             pass
 
-        # ✅ Send to Premium Log Channel
+        # Send to premium log channel
         user = await client.get_users(uid)
         username = f"@{user.username}" if user.username else "N/A"
 
@@ -178,11 +176,14 @@ async def approve_plan(client, message: Message):
             f"🔗 <b>Username:</b> {username}\n"
             f"💎 <b>Plan Duration:</b> {days} days\n"
             f"📅 <b>Expires On:</b> <code>{expires.date()}</code>",
-            parse_mode="HTML"
+            parse_mode="html"  # FIXED here
         )
 
     except Exception as e:
-        await message.reply(f"❌ Usage: /approve <user_id> <days>\n\n<b>Error:</b> {e}", parse_mode="HTML")
+        await message.reply(
+            f"❌ Usage: /approve <user_id> <days>\n\n<b>Error:</b> {e}",
+            parse_mode="html"  # FIXED here
+        )
 
 @Client.on_message(filters.command("revoke") & filters.user(ADMINS))
 async def revoke_plan(client, message: Message):
