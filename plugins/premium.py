@@ -202,7 +202,7 @@ async def revoke_premium(client, message: Message):
 
         await message.reply(
             f"🗑️ Premium access removed for user <code>{uid}</code>.",
-            parse_mode="HTML"
+            
         )
 
         try:
