@@ -14,6 +14,7 @@ class Config:
     BOT_OWNER = int(environ.get("BOT_OWNER", ""))
     LOG_CHANNEL_ID = int(environ.get("LOG_CHANNEL_ID", "-1002250811863"))
     ADMINS = list(map(int, environ.get("ADMINS", "").split()))
+    PREMIUM_LOG_CHANNEL = int(environ.get("PREMIUM_LOG_CHANNEL", "-1001234567890"))
 
 # Don't Remove Credit Tg - @VJ_Botz
 # Subscribe YouTube Channel For Amazing Bot https://youtube.com/@Tech_VJ
