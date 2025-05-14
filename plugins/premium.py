@@ -222,7 +222,42 @@ async def my_plan(client, message: Message):
             parse_mode="HTML"
         )
 
+@Client.on_message(filters.command("premiumusers") & filters.user(ADMINS))
+async def list_premium_users(client, message: Message):
+    users_cursor = db.col.find({
+        "premium.is_active": True
+    })
 
+    msg_lines = []
+    count = 0
+
+    async for user in users_cursor:
+        uid = user.get("id")
+        name = user.get("name", "NoName")
+        expires_str = user.get("premium", {}).get("expires_on")
+
+        if not expires_str:
+            continue
+
+        try:
+            expires = datetime.fromisoformat(expires_str)
+            days_left = (expires - datetime.utcnow()).days
+            status = f"{days_left} days left"
+        except Exception as e:
+            status = "❓ Unknown"
+
+        msg_lines.append(f"👤 <b>{name}</b> | <code>{uid}</code>\n📅 {status} | Expires: <code>{expires.date()}</code>\n")
+        count += 1
+
+        if count >= 40:
+            break  # Avoid flooding Telegram
+
+    if not msg_lines:
+        return await message.reply("❌ No active premium users found.")
+
+    text = f"💎 <b>Active Premium Users</b> ({count}):\n\n" + "\n".join(msg_lines)
+    await message.reply(text, disable_web_page_preview=True)
+    
 @Client.on_callback_query(filters.regex("start"))
 async def go_home(client, callback_query: CallbackQuery):
     user = callback_query.from_user
