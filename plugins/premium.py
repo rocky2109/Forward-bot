@@ -184,28 +184,37 @@ async def approve_plan(client, message: Message):
             f"❌ Usage: /approve <user_id> <days>\nError: {e}"
         )
 
-@Client.on_message(filters.command("revoke") & filters.user(ADMINS))
-async def revoke_plan(client, message: Message):
-    try:
-        _, uid = message.text.split()
-        uid = int(uid)
+@Client.on_message(filters.command(["revoke", "remove"]) & filters.user(ADMINS))
+async def revoke_premium(client, message: Message):
+    parts = message.text.strip().split()
 
+    if len(parts) != 2:
+        return await message.reply("❌ Usage: /revoke <user_id>")
+
+    try:
+        uid = int(parts[1])
+
+        # Remove premium and plan info
         await db.col.update_one(
             {"id": uid},
             {"$unset": {"premium": "", "selected_plan": ""}}
         )
 
-        await message.reply(f"🗑️ Premium access revoked for user <code>{uid}</code>.", parse_mode="HTML")
+        await message.reply(
+            f"🗑️ Premium access removed for user <code>{uid}</code>.",
+            parse_mode="HTML"
+        )
 
         try:
-            await client.send_message(uid, "⚠️ Your premium plan has been revoked by admin.")
+            await client.send_message(
+                uid,
+                "⚠️ Your premium plan has been revoked by an admin. Contact support if this is a mistake."
+            )
         except:
             pass
 
-    except:
-        await message.reply("❌ Usage: /revoke <user_id>")
-
-
+    except Exception as e:
+        await message.reply(f"❌ Failed to revoke: {e}")
 @Client.on_message(filters.command("myplan") & filters.private)
 async def my_plan(client, message: Message):
     user = await db.col.find_one({"id": message.from_user.id})
