@@ -148,11 +148,13 @@ async def approve_plan(client, message: Message):
             upsert=True
         )
 
+        # ✅ Notify admin
         await message.reply(
             f"✅ Approved <code>{uid}</code> for {days} days.\n📅 Expires on: <b>{expires.date()}</b>",
             parse_mode="HTML"
         )
 
+        # ✅ Notify user
         try:
             await client.send_message(
                 uid,
@@ -164,9 +166,23 @@ async def approve_plan(client, message: Message):
         except:
             pass
 
-    except:
-        await message.reply("❌ Usage: /approve <user_id> <days>")
+        # ✅ Send to Premium Log Channel
+        user = await client.get_users(uid)
+        username = f"@{user.username}" if user.username else "N/A"
 
+        await client.send_message(
+            Config.PREMIUM_LOG_CHANNEL,
+            f"🌟 <b>New Premium User Approved</b>\n\n"
+            f"👤 <b>User:</b> <a href='tg://user?id={uid}'>{user.first_name}</a>\n"
+            f"🆔 <b>ID:</b> <code>{uid}</code>\n"
+            f"🔗 <b>Username:</b> {username}\n"
+            f"💎 <b>Plan Duration:</b> {days} days\n"
+            f"📅 <b>Expires On:</b> <code>{expires.date()}</code>",
+            parse_mode="HTML"
+        )
+
+    except Exception as e:
+        await message.reply(f"❌ Usage: /approve <user_id> <days>\n\n<b>Error:</b> {e}", parse_mode="HTML")
 
 @Client.on_message(filters.command("revoke") & filters.user(ADMINS))
 async def revoke_plan(client, message: Message):
