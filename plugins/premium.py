@@ -159,7 +159,7 @@ async def approve_plan(client, message: Message):
                 f"🎉 <b>Your premium is now active!</b>\n"
                 f"✅ Valid for <b>{days}</b> days.\n"
                 f"📅 Expires on: <code>{expires.date()}</code>",
-                parse_mode="html"  # FIXED here
+                  # FIXED here
             )
         except:
             pass
@@ -176,13 +176,13 @@ async def approve_plan(client, message: Message):
             f"🔗 <b>Username:</b> {username}\n"
             f"💎 <b>Plan Duration:</b> {days} days\n"
             f"📅 <b>Expires On:</b> <code>{expires.date()}</code>",
-            parse_mode="html"  # FIXED here
+            # FIXED here
         )
 
     except Exception as e:
         await message.reply(
             f"❌ Usage: /approve <user_id> <days>\n\n<b>Error:</b> {e}",
-            parse_mode="html"  # FIXED here
+              # FIXED here
         )
 
 @Client.on_message(filters.command("revoke") & filters.user(ADMINS))
