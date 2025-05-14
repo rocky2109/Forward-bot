@@ -136,6 +136,7 @@ async def approve_plan(client, message: Message):
         days = int(days)
         expires = datetime.utcnow() + timedelta(days=days)
 
+        # ✅ Update premium status
         await db.col.update_one(
             {"id": uid},
             {"$set": {
@@ -148,41 +149,39 @@ async def approve_plan(client, message: Message):
             upsert=True
         )
 
+        # ✅ Confirm to admin
         await message.reply(
-            f"✅ Approved <code>{uid}</code> for {days} days.\n📅 Expires on: <b>{expires.date()}</b>",
-            parse_mode="html"  # FIXED here
+            f"✅ Approved {uid} for {days} days.\nExpires on: {expires.date()}"
         )
 
+        # ✅ Notify user
         try:
             await client.send_message(
                 uid,
-                f"🎉 <b>Your premium is now active!</b>\n"
-                f"✅ Valid for <b>{days}</b> days.\n"
-                f"📅 Expires on: <code>{expires.date()}</code>",
-                  # FIXED here
+                f"🎉 Your premium is now active!\n"
+                f"✅ Valid for {days} days.\n"
+                f"📅 Expires on: {expires.date()}"
             )
         except:
             pass
 
-        # Send to premium log channel
+        # ✅ Optional: send confirmation to another log channel (if any)
         user = await client.get_users(uid)
         username = f"@{user.username}" if user.username else "N/A"
 
         await client.send_message(
             Config.PREMIUM_LOG_CHANNEL,
-            f"🌟 <b>New Premium User Approved</b>\n\n"
-            f"👤 <b>User:</b> <a href='tg://user?id={uid}'>{user.first_name}</a>\n"
-            f"🆔 <b>ID:</b> <code>{uid}</code>\n"
-            f"🔗 <b>Username:</b> {username}\n"
-            f"💎 <b>Plan Duration:</b> {days} days\n"
-            f"📅 <b>Expires On:</b> <code>{expires.date()}</code>",
-            # FIXED here
+            f"🌟 New Premium Approved\n\n"
+            f"👤 User: {user.first_name}\n"
+            f"🆔 ID: {uid}\n"
+            f"🔗 Username: {username}\n"
+            f"💰 Plan: {days} days\n"
+            f"📅 Expires: {expires.date()}"
         )
 
     except Exception as e:
         await message.reply(
-            f"❌ Usage: /approve <user_id> <days>\n\n<b>Error:</b> {e}",
-              # FIXED here
+            f"❌ Usage: /approve <user_id> <days>\nError: {e}"
         )
 
 @Client.on_message(filters.command("revoke") & filters.user(ADMINS))
